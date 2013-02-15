@@ -1,4 +1,5 @@
 import sys, os, itertools, zipfile
+import pkg_resources
 
 try:
     from io import BytesIO
@@ -35,8 +36,10 @@ def validate_user(username, password):
 def configure(root=None,
               redirect_to_fallback=True,
               fallback_url=None,
-              password_file=None):
+              password_file=None,
+              html=None):
     global packages
+    global index
 
     if root is None:
         root = os.path.expanduser("~/packages")
@@ -66,6 +69,13 @@ def configure(root=None,
         from passlib.apache import HtpasswdFile
         config.htpasswdfile = HtpasswdFile(password_file)
 
+    print 'html is ' + str(html)
+    if html is None:
+      index =  pkg_resources.resource_string('pypiserver', 'html/index.html')
+    else:
+      with open(html, 'r') as html:
+        index = html.read()
+
 app = Bottle()
 
 
@@ -83,25 +93,7 @@ def root():
     except:
         numpkgs = 0
 
-    return """<html><head><title>Welcome to pypiserver!</title></head><body>
-<h1>Welcome to pypiserver!</h1>
-<p>This is a PyPI compatible package index serving %(NUMPKGS)s packages.</p>
-
-<p> To use this server with pip, run the the following command:
-<blockquote><pre>
-pip install -i %(URL)ssimple/ PACKAGE [PACKAGE2...]
-</pre></blockquote></p>
-
-<p> To use this server with easy_install, run the the following command:
-<blockquote><pre>
-easy_install -i %(URL)ssimple/ PACKAGE
-</pre></blockquote></p>
-
-<p>The complete list of all packages can be found <a href="%(PACKAGES)s">here</a> or via the <a href="%(SIMPLE)s">simple</a> index.</p>
-
-<p>This instance is running version %(VERSION)s of the <a href="http://pypi.python.org/pypi/pypiserver">pypiserver</a> software.</p>
-</body></html>
-""" % dict(URL=request.url, VERSION=__version__, NUMPKGS=numpkgs,
+    return index % dict(URL=request.url, VERSION=__version__, NUMPKGS=numpkgs,
            PACKAGES=urljoin(fp, "packages/"),
            SIMPLE=urljoin(fp, "simple/"))
 

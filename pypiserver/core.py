@@ -145,6 +145,10 @@ pypi-server understands the following options:
   -r PACKAGES_DIRECTORY, --root PACKAGES_DIRECTORY
     [deprecated] serve packages from PACKAGES_DIRECTORY
 
+  --html HTML_FILE
+    Specifies an html file to use as the index page of the package server. 
+    The original template can be found in pypiserver/html.
+
 pypi-server -h
 pypi-server --help
   show this help message
@@ -179,6 +183,7 @@ def main(argv=None):
         argv = sys.argv
 
     global packages
+    global html
 
     command = "serve"
     host = "0.0.0.0"
@@ -187,6 +192,7 @@ def main(argv=None):
     redirect_to_fallback = True
     fallback_url = "http://pypi.python.org/simple"
     password_file = None
+    html = None
 
     update_dry_run = True
     update_directory = None
@@ -202,6 +208,7 @@ def main(argv=None):
             "fallback-url=",
             "disable-fallback",
             "version",
+            "html=",
             "help"
         ])
     except getopt.GetoptError:
@@ -237,6 +244,8 @@ def main(argv=None):
             update_directory = v
         elif k in ("-P", "--passwords"):
             password_file = v
+        elif k == "--html":
+            html = v
         elif k in ("-h", "--help"):
             usage()
             sys.exit(0)
